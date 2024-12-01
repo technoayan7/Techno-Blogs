@@ -1,7 +1,8 @@
-import "../styles/globals.css";
 import { ThemeProvider } from "next-themes";
 import { Provider } from "react-redux";
 import { store } from "../Redux/store";
+import '../styles/globals.css'
+
 
 function MyApp({ Component, pageProps }) {
   return (

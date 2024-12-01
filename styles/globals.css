@@ -11,6 +11,9 @@
   }
 }
 
+/* globals.css or main CSS file */
+@import 'prismjs/themes/prism-tomorrow.css';
+/* You can change the theme if needed */
 html {
   scroll-behavior: smooth;
 }
