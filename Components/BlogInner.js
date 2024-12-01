@@ -1,40 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { MDXRemote } from "next-mdx-remote";
+import Toc from "./Toc";
 import rehypePrism from "rehype-prism-plus"; // Syntax highlighting plugin for rehype
 import "prismjs/themes/prism-tomorrow.css"; // PrismJS theme
 
+// Ensure PrismJS components are imported globally
+import "prismjs";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-sql";
+
 function BlogInner({ data, content, headings }) {
-  const [isPrismLoaded, setPrismLoaded] = useState(false);
-
   useEffect(() => {
-    if (typeof window !== "undefined" && !isPrismLoaded) {
-      // Dynamically import PrismJS and its components after the component mounts
-      import("prismjs").then(() => {
-        // Dynamically load specific PrismJS components
-        import("prismjs/components/prism-java");
-        import("prismjs/components/prism-c");
-        import("prismjs/components/prism-cpp");
-        import("prismjs/components/prism-javascript");
-        import("prismjs/components/prism-python");
-        import("prismjs/components/prism-markup");
-        import("prismjs/components/prism-css");
-        import("prismjs/components/prism-jsx");
-        import("prismjs/components/prism-sql");
-
-        setPrismLoaded(true);
-      });
+    // Run Prism syntax highlighting once Prism is available
+    if (typeof window !== "undefined") {
+      Prism.highlightAll();  // Highlights all the code blocks after the component mounts
     }
-  }, [isPrismLoaded]);
-
-  useEffect(() => {
-    // Run Prism syntax highlighting once Prism is loaded
-    if (isPrismLoaded) {
-      import("prismjs").then(() => {
-        // Make sure to run `highlightAll` after Prism is available
-        Prism.highlightAll();
-      });
-    }
-  }, [isPrismLoaded, content]);
+  }, [content]); // Trigger highlightAll only when content changes
 
   return (
     <div className="mx-auto flex justify-center max-w-screen-xl px-6">
@@ -84,7 +72,7 @@ function BlogInner({ data, content, headings }) {
         </div>
       </div>
       <div className="toc ml-auto max-w-sm">
-        {/* Add any additional components for table of contents */}
+        <Toc headings={headings} />
       </div>
     </div>
   );
