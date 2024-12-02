@@ -28,7 +28,7 @@ export default function Home({ blogs, topics }) {
         />
 
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://blogs.ayan-ahmad.dev/" />
+        <meta property="og:url" content="https://technoblogs.onrender.com" />
         <meta property="og:title" content="Ayan Ahmad | Blog 🚀" />
         <meta
           property="og:description"
@@ -36,7 +36,7 @@ export default function Home({ blogs, topics }) {
         />
         <meta
           property="og:image"
-          content="https://yourdomain.com/path-to-blog-preview-image.png"
+          content="https://i.imgur.com/k7Ra9ab.png"
         />
 
         <meta property="twitter:card" content="summary_large_image" />

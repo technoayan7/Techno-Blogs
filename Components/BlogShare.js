@@ -5,7 +5,7 @@ function BlogShare({ data }) {
     data.Title.split(" ").join("-").toLowerCase()
   )}`;
   const tweetUrl = `https://twitter.com/intent/tweet?text=${data.Title
-    } by @technoayan&url=${encodeURIComponent(formattedUrl)}&hashtags=${data.Tags.replace(
+    } by @technoayan7&url=${encodeURIComponent(formattedUrl)}&hashtags=${data.Tags.replace(
       /\s+/g,
       ","
     )}`;
