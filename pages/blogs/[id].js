@@ -10,6 +10,7 @@ import { SWRConfig } from "swr";
 import { remarkHeadingId } from "remark-custom-heading-id";
 import { getHeadings } from "../../Lib/GetHeadings";
 import LikeBtn from "../../Components/LikeBtn";
+import BlogViews from "../../Components/BlogViews";
 
 export const getStaticPaths = () => {
   const allBlogs = getAllBlogPosts();
@@ -89,6 +90,10 @@ function id({ data, content, id, headings, topics }) {
       <div className="min-h-screen relative bg-white dark:bg-gray-900">
         <Navbar topics={topics} />
         <div className="py-24">
+          <div className="flex items-center justify-center mb-2">
+            <h1 className="text-3xl font-bold">{data.Title}</h1>
+            <BlogViews id={data.Id} />
+          </div>
           <BlogInner data={data} content={content} headings={headings} />
           <LikeBtn id={id} />
           <BlogShare data={data} />
