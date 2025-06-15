@@ -12,12 +12,12 @@ export const getStaticProps = () => {
       Id: blog.data.Id,
       Title: blog.data.Title,
       Abstract: blog.data.Abstract,
-      Tags: blog.data.Tags || "DefaultTag", // Add a default tag if missing
+      Tags: blog.data.Tags || "DefaultTag",
       isPublished: blog.data.isPublished,
       Author: blog.data.Author,
       HeaderImage: blog.data.HeaderImage,
     },
-    readTime: blog.readTime,
+    readTime: blog.readTime, // Keep original reading time
   }));
   const allTopics = getAllTopics();
 
