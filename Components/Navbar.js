@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { BiTerminal } from "react-icons/bi";
 import { HiSun, HiMoon } from "react-icons/hi";
 import { IoSearch } from "react-icons/io5";
@@ -11,18 +12,51 @@ import { signInWithPopup, signOut } from "firebase/auth";
 import { IoLogOutOutline } from "react-icons/io5";
 import { SiCodefactor } from "react-icons/si";
 import { IoMdArrowDropdown } from "react-icons/io";
-import Alert from "./Alert";
 import { useDispatch } from "react-redux";
 
-function Navbar({ topics, blogs = [], onSearch = () => { } }) {
+// Lazy load Alert component
+const Alert = dynamic(() => import("./Alert"), { ssr: false });
+
+// Debounce hook for search optimization
+const useDebounce = (value, delay) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
+function Navbar({ topics, blogs = [], onSearch = () => {} }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isLogin, setLogin] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false); // <-- controls expansion
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
   const [viewAlert, setViewAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const dispatch = useDispatch();
+
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Memoize filtered results
+  const filteredResults = useMemo(() => {
+    if (!debouncedSearchQuery.trim()) return blogs;
+    
+    return blogs.filter((blog) =>
+      blog.data.Title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      blog.data.Abstract?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+      blog.data.Tags?.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+    );
+  }, [blogs, debouncedSearchQuery]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -33,13 +67,18 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
     }
   }, [dispatch]);
 
-  const toggleTheme = () => {
+  // Update search results when filtered results change
+  useEffect(() => {
+    onSearch(filteredResults);
+  }, [filteredResults, onSearch]);
+
+  const toggleTheme = useCallback(() => {
     if (isMounted) {
       setTheme(theme === "light" ? "dark" : "light");
     }
-  };
+  }, [isMounted, theme, setTheme]);
 
-  const handleSignOut = () => {
+  const handleSignOut = useCallback(() => {
     signOut(auth)
       .then(() => {
         setLogin(false);
@@ -54,9 +93,9 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
       .catch((error) => {
         console.log(error);
       });
-  };
+  }, [dispatch]);
 
-  const handleSignIn = () => {
+  const handleSignIn = useCallback(() => {
     signInWithPopup(auth, provider)
       .then((res) => {
         const userObj = {
@@ -78,33 +117,22 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, [dispatch]);
 
-  // Real-time search logic
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-
-    if (query.trim()) {
-      const results = blogs.filter((blog) =>
-        blog.data.Title.toLowerCase().includes(query.toLowerCase())
-      );
-      onSearch(results);
-    } else {
-      onSearch(blogs);
-    }
-  };
+  const handleSearchChange = useCallback((e) => {
+    setSearchQuery(e.target.value);
+  }, []);
 
   return (
     <>
-      <Alert show={viewAlert} type="success" message={alertMessage} />
+      {viewAlert && <Alert show={viewAlert} type="success" message={alertMessage} />}
       <header className="fixed w-full border-t-4 bg-white dark:bg-dark border-indigo-600 dark:border-indigo-900 shadow dark:shadow-2 z-50">
         <div className="container mx-auto px-6 py-5">
           <div className="flex items-center justify-between">
             {/* Left Section */}
             <div className="flex">
               <Link href="/">
-                <a className="flex items-center hover:text-indigo-600 text-gray-800 dark:text-gray-50">
+                <a className="flex items-center hover:text-indigo-600 text-gray-800 dark:text-gray-50 transition-colors">
                   <span className="text-xl font-semibold">
                     <BiTerminal className="text-xl" />
                   </span>
@@ -116,7 +144,7 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
 
               {/* Dropdown for Topics */}
               <div className="dropdown inline-block relative mx-2">
-                <a className="flex items-center hover:text-indigo-600 text-gray-800 dark:text-gray-50 mx-6 cursor-pointer">
+                <a className="flex items-center hover:text-indigo-600 text-gray-800 dark:text-gray-50 mx-6 cursor-pointer transition-colors">
                   <span className="text-xl font-semibold">
                     <SiCodefactor className="text-sm" />
                   </span>
@@ -127,12 +155,11 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
                     <IoMdArrowDropdown className="text-xl" />
                   </span>
                 </a>
-                {/* Topics Dropdown List */}
                 <ul className="dropdown-menu absolute hidden text-gray-700 bg-white dark:bg-dark w-40 pt-6 rounded-xl left-1/3">
                   {topics.map((topic) => (
                     <Link href={`/topic/${topic}`} key={topic}>
                       <li className="cursor-pointer">
-                        <a className="rounded-xl bg-white dark:bg-dark text-gray-800 dark:text-gray-50 py-2 px-4 block whitespace-no-wrap">
+                        <a className="rounded-xl bg-white dark:bg-dark text-gray-800 dark:text-gray-50 py-2 px-4 block whitespace-no-wrap hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                           {topic}
                         </a>
                       </li>
@@ -144,18 +171,17 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
 
             {/* Right Section */}
             <div className="flex items-center space-x-4">
-              {/* Search icon and input */}
               <div className="flex items-center relative">
                 {isSearchOpen ? (
                   <div className="relative w-32 md:w-40">
                     <input
                       type="text"
                       placeholder="Search blogs..."
-                      className="w-full pl-2 pr-10 py-1 border rounded-lg focus:outline-none focus:ring transition-width duration-400"
+                      className="w-full pl-2 pr-10 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-300"
                       value={searchQuery}
                       onChange={handleSearchChange}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" || e.key === "Escape") {
                           setIsSearchOpen(false);
                         }
                       }}
@@ -163,7 +189,7 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
                     />
                     <button
                       type="button"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-700 dark:text-gray-50 hover:text-indigo-600"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-700 dark:text-gray-50 hover:text-indigo-600 transition-colors"
                       onClick={() => setIsSearchOpen(false)}
                     >
                       <IoSearch className="text-xl" />
@@ -172,7 +198,7 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
                 ) : (
                   <button
                     type="button"
-                    className="text-gray-700 dark:text-gray-50 hover:text-indigo-600"
+                    className="text-gray-700 dark:text-gray-50 hover:text-indigo-600 transition-colors"
                     onClick={() => setIsSearchOpen(true)}
                   >
                     <IoSearch className="text-xl" />
@@ -180,10 +206,8 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
                 )}
               </div>
 
-
-              {/* Theme Toggle */}
               <button
-                className="flex items-center text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50"
+                className="flex items-center text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50 transition-colors"
                 onClick={toggleTheme}
               >
                 <span className="text-lg">
@@ -195,17 +219,15 @@ function Navbar({ topics, blogs = [], onSearch = () => { } }) {
                 </span>
               </button>
 
-              {/* About Page Link */}
               <Link href="/about">
-                <a className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50">
+                <a className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50 transition-colors">
                   <span className="text-xl">
                     <CgUserlane className="text-xl" />
                   </span>
                 </a>
               </Link>
 
-              {/* Sign In / Sign Out */}
-              <button className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50">
+              <button className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50 transition-colors">
                 {isLogin ? (
                   <span
                     className="md:flex items-center"
