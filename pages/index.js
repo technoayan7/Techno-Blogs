@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Head from "next/head";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
@@ -31,33 +31,45 @@ export const getStaticProps = () => {
 
 export default function Home({ blogs, topics }) {
   const [filteredBlogs, setFilteredBlogs] = useState(blogs);
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Calculate the total number of pages
-  const totalPages = Math.ceil(filteredBlogs.length / itemsPerPage);
+  // Memoize pagination calculations
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filteredBlogs.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const displayedBlogs = filteredBlogs.slice(startIndex, endIndex);
 
-  // Calculate the blogs to display on the current page
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const displayedBlogs = filteredBlogs.slice(startIndex, endIndex);
+    return { totalPages, displayedBlogs };
+  }, [filteredBlogs, currentPage, itemsPerPage]);
 
-  // This receives the filtered array from the Navbar search
-  const handleSearchResults = (results) => {
+  // Use useCallback to prevent unnecessary re-renders
+  const handleSearchResults = useCallback((results) => {
     setFilteredBlogs(results);
-    setCurrentPage(1); // Reset to page 1 when new results arrive
-  };
+    setCurrentPage(1); // Only reset to page 1 for search
+  }, []);
 
-  // Pagination controls
-  const goToPreviousPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
+  // Pagination controls with useCallback
+  const goToPreviousPage = useCallback(() => {
+    setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
+  }, []);
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
+  const goToNextPage = useCallback(() => {
+    setCurrentPage((prev) =>
+      prev < paginationData.totalPages ? prev + 1 : prev
+    );
+  }, [paginationData.totalPages]);
+
+  // Direct page navigation
+  const goToPage = useCallback(
+    (pageNumber) => {
+      if (pageNumber >= 1 && pageNumber <= paginationData.totalPages) {
+        setCurrentPage(pageNumber);
+      }
+    },
+    [paginationData.totalPages]
+  );
 
   return (
     <>
@@ -91,15 +103,14 @@ export default function Home({ blogs, topics }) {
       </Head>
 
       <div className="min-h-screen relative bg-white dark:bg-gray-900">
-        {/* Pass blogs and search handler to Navbar */}
         <Navbar topics={topics} blogs={blogs} onSearch={handleSearchResults} />
         <Header />
 
         {/* Main content area */}
         <div className="px-0.5 md:px-7 pb-14 pt-6 mx-auto">
           <div className="flex flex-wrap">
-            {displayedBlogs.length > 0 ? (
-              displayedBlogs.map(
+            {paginationData.displayedBlogs.length > 0 ? (
+              paginationData.displayedBlogs.map(
                 (blog) =>
                   blog.data.isPublished && (
                     <BlogHeader
@@ -117,26 +128,96 @@ export default function Home({ blogs, topics }) {
             )}
           </div>
 
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center mt-4 mb-8 space-x-4">
-              <button
-                onClick={goToPreviousPage}
-                disabled={currentPage === 1}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <span className="text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={goToNextPage}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
+          {/* Enhanced Pagination Controls */}
+          {paginationData.totalPages > 1 && (
+            <div className="flex justify-center items-center mt-8 mb-8">
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {/* First page */}
+                  {currentPage > 3 && (
+                    <>
+                      <button
+                        onClick={() => goToPage(1)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        1
+                      </button>
+                      {currentPage > 4 && (
+                        <span className="px-2 text-gray-500">...</span>
+                      )}
+                    </>
+                  )}
+
+                  {/* Current page and neighbors */}
+                  {Array.from(
+                    { length: paginationData.totalPages },
+                    (_, i) => i + 1
+                  )
+                    .filter(
+                      (page) =>
+                        page >= Math.max(1, currentPage - 2) &&
+                        page <= Math.min(
+                          paginationData.totalPages,
+                          currentPage + 2
+                        )
+                    )
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-3 py-2 border rounded transition-colors ${
+                          page === currentPage
+                            ? "bg-indigo-600 text-white border-indigo-600"
+                            : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  {/* Last page */}
+                  {currentPage < paginationData.totalPages - 2 && (
+                    <>
+                      {currentPage < paginationData.totalPages - 3 && (
+                        <span className="px-2 text-gray-500">...</span>
+                      )}
+                      <button
+                        onClick={() => goToPage(paginationData.totalPages)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        {paginationData.totalPages}
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === paginationData.totalPages}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+
+              {/* Page Info */}
+              <div className="ml-4 text-sm text-gray-600 dark:text-gray-400">
+                Page {currentPage} of {paginationData.totalPages}
+                <span className="ml-2">
+                  ({filteredBlogs.length} total blogs)
+                </span>
+              </div>
             </div>
           )}
         </div>
