@@ -1,4 +1,5 @@
 import db from "../../../Firebase/Firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -11,10 +12,10 @@ export default async function handler(req, res) {
     const viewsRef = db.collection("blogViews").doc(id);
     
     if (req.method === "POST") {
-      // Increment view count
+      // Increment view count using proper FieldValue import
       await viewsRef.set({
-        views: db.FieldValue.increment(1),
-        lastUpdated: db.FieldValue.serverTimestamp()
+        views: FieldValue.increment(1),
+        lastUpdated: FieldValue.serverTimestamp()
       }, { merge: true });
       
       // Get updated count
