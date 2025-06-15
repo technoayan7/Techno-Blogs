@@ -10,7 +10,7 @@ import { SWRConfig } from "swr";
 import { remarkHeadingId } from "remark-custom-heading-id";
 import { getHeadings } from "../../Lib/GetHeadings";
 import LikeBtn from "../../Components/LikeBtn";
-import BlogViews from "../../Components/BlogViews";
+import BlogViews from "../../Components/BlogViews"; // This will increment after 5 seconds
 
 export const getStaticPaths = () => {
   const allBlogs = getAllBlogPosts();
@@ -92,7 +92,7 @@ function id({ data, content, id, headings, topics }) {
         <div className="py-24">
           <div className="flex items-center justify-center mb-2">
             <h1 className="text-3xl font-bold">{data.Title}</h1>
-            <BlogViews id={data.Id} />
+            <BlogViews id={data.Id} /> {/* This will increment after 5 seconds */}
           </div>
           <BlogInner data={data} content={content} headings={headings} />
           <LikeBtn id={id} />
