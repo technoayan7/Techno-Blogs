@@ -1,47 +1,40 @@
-import fs from "fs";
-import path from "path";
+import db from "../../../Firebase/Firebase-admin";
 
-const viewsFile = path.resolve(process.cwd(), "views.json");
-
-function readViews() {
-  try {
-    if (!fs.existsSync(viewsFile)) return {};
-    const data = fs.readFileSync(viewsFile, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("Error reading views file:", error);
-    return {};
-  }
-}
-
-function writeViews(data) {
-  try {
-    fs.writeFileSync(viewsFile, JSON.stringify(data, null, 2), "utf-8");
-  } catch (error) {
-    console.error("Error writing views file:", error);
-  }
-}
-
-export default function handler(req, res) {
+export default async function handler(req, res) {
   const { id } = req.query;
   
   if (!id) {
     return res.status(400).json({ error: "Blog ID is required" });
   }
 
-  let views = readViews();
+  try {
+    const viewsRef = db.collection("blogViews").doc(id);
+    
+    if (req.method === "POST") {
+      // Increment view count
+      await viewsRef.set({
+        views: db.FieldValue.increment(1),
+        lastUpdated: db.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      // Get updated count
+      const doc = await viewsRef.get();
+      const views = doc.exists ? doc.data().views : 1;
+      
+      return res.status(200).json({ views });
+    }
 
-  if (req.method === "POST") {
-    // Increment view count
-    views[id] = (views[id] || 0) + 1;
-    writeViews(views);
-    return res.status(200).json({ views: views[id] });
+    if (req.method === "GET") {
+      // Get view count
+      const doc = await viewsRef.get();
+      const views = doc.exists ? doc.data().views : 0;
+      
+      return res.status(200).json({ views });
+    }
+
+    res.status(405).json({ error: "Method not allowed" });
+  } catch (error) {
+    console.error("Error handling views:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  if (req.method === "GET") {
-    // Get view count
-    return res.status(200).json({ views: views[id] || 0 });
-  }
-
-  res.status(405).json({ error: "Method not allowed" });
 }
