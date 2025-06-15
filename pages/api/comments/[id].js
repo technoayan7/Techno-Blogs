@@ -1,4 +1,5 @@
 import db from "../../../Firebase/Firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
         email: email || "",
         message,
         parentId,
-        timestamp: db.FieldValue.serverTimestamp(),
+        timestamp: FieldValue.serverTimestamp(),
         reactions: { like: 0, love: 0, celebrate: 0 },
         userReactions: {}
       };
