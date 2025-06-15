@@ -1,6 +1,6 @@
 import { AiOutlineArrowRight } from "react-icons/ai";
 import Link from "next/link";
-import BlogViews from "./BlogViews";
+import BlogViewsDisplay from "./BlogViewsDisplay"; // Use display-only component
 
 function BlogHeader({ data, content, readTime }) {
   return (
@@ -23,7 +23,7 @@ function BlogHeader({ data, content, readTime }) {
                 </p>
               ))}
             </div>
-            <BlogViews id={data.Id} />
+            <BlogViewsDisplay id={data.Id} />
           </div>
           
           <Link href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}>
