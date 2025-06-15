@@ -1,4 +1,5 @@
 import db from "../../Firebase/Firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 const requestIp = require("request-ip");
 const bcrypt = require("bcryptjs");
 
@@ -6,9 +7,9 @@ export default async (req, res) => {
   if (req.method === "POST") {
     try {
       const clientIp = requestIp.getClientIp(req);
-      const pid = req.body.id;
+      const pid = String(req.body.id); // Convert to string
 
-      if (!pid) {
+      if (!pid || pid === 'undefined' || pid === 'null') {
         return res.status(400).json({ error: "Blog ID is required" });
       }
 
@@ -26,22 +27,20 @@ export default async (req, res) => {
       });
 
       if (!isFound) {
-        // Add like
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(clientIp, salt);
         await likeRef.add({ 
           userIp: hash,
-          timestamp: db.FieldValue.serverTimestamp()
+          timestamp: FieldValue.serverTimestamp()
         });
       } else {
-        // Remove like
         await likeRef.doc(docId).delete();
       }
       
       res.status(200).json({ message: "Successful" });
     } catch (error) {
       console.error("Error handling like:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Internal server error", details: error.message });
     }
   } else {
     res.status(405).json({ error: "Method not allowed" });
