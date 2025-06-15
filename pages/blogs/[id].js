@@ -11,6 +11,8 @@ import { remarkHeadingId } from "remark-custom-heading-id";
 import { getHeadings } from "../../Lib/GetHeadings";
 import LikeBtn from "../../Components/LikeBtn";
 import BlogViews from "../../Components/BlogViews"; // This will increment after 5 seconds
+import EnhancedComments from "../../Components/EnhancedComments";
+import ReadingTimeProgress from "../../Components/ReadingTimeProgress";
 
 export const getStaticPaths = () => {
   const allBlogs = getAllBlogPosts();
@@ -42,6 +44,12 @@ export const getStaticProps = async (context) => {
   );
 
   const { data, content } = page;
+
+  // Use the same reading time that's already calculated in getAllBlogPosts
+  const readingTimeMinutes = page.readTime ? 
+    parseInt(page.readTime.text.split(' ')[0]) : // Extract number from "5 min read"
+    Math.max(2, Math.ceil(content.length / 1000)); // Fallback calculation
+
   const mdxSource = await serialize(content, {
     scope: data,
     mdxOptions: { remarkPlugins: [remarkHeadingId] },
@@ -56,11 +64,12 @@ export const getStaticProps = async (context) => {
       id: params.id,
       headings: headings,
       topics: allTopics,
+      readingTime: readingTimeMinutes,
     },
   };
 };
 
-function id({ data, content, id, headings, topics }) {
+function id({ data, content, id, headings, topics, readingTime }) {
   return (
     <>
       <Head>
@@ -89,6 +98,12 @@ function id({ data, content, id, headings, topics }) {
 
       <div className="min-h-screen relative bg-white dark:bg-gray-900">
         <Navbar topics={topics} />
+        
+        <ReadingTimeProgress 
+          content={content} 
+          estimatedTime={readingTime} 
+        />
+        
         <div className="py-24">
           <div className="flex items-center justify-center mb-2">
             <h1 className="text-3xl font-bold">{data.Title}</h1>
@@ -98,9 +113,7 @@ function id({ data, content, id, headings, topics }) {
           <LikeBtn id={id} />
           <BlogShare data={data} />
 
-          <SWRConfig>
-            <Comments id={id} />
-          </SWRConfig>
+          <EnhancedComments blogId={data.Id} />
 
           <Footer />
         </div>
