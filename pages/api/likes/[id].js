@@ -3,12 +3,12 @@ const requestIp = require("request-ip");
 const bcrypt = require("bcryptjs");
 
 export default async (req, res) => {
-  const { pid } = req.query;
+  const { id } = req.query;
 
   let hasUserLiked = false,
     totalLikes = 0;
   const clientIp = requestIp.getClientIp(req);
-  const likeRef = db.collection("posts").doc(pid).collection("likes");
+  const likeRef = db.collection("posts").doc(id).collection("likes");
 
   const snapshot = await likeRef.get();
   snapshot.forEach((doc) => {
