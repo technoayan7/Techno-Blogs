@@ -110,7 +110,7 @@ function id({ data, content, id, headings, topics, readingTime }) {
             <BlogViews id={data.Id} /> {/* This will increment after 5 seconds */}
           </div>
           <BlogInner data={data} content={content} headings={headings} />
-          <LikeBtn id={id} />
+          <LikeBtn id={data.Id} /> {/* Pass the actual blog ID, not the slug */}
           <BlogShare data={data} />
 
           <EnhancedComments blogId={data.Id} />
