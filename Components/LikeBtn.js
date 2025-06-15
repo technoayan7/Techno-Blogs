@@ -1,34 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { FiHeart } from 'react-icons/fi';
 import useSWR from 'swr';
 
-const fetcher = (url) => fetch(url).then((res) => res.json());
+const fetcher = async (url) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`);
+  }
+  return res.json();
+};
 
 const LikeBtn = ({ id }) => {
   const [isLiking, setIsLiking] = useState(false);
   
-  // Get blog ID from slug
-  const getBlogIdFromSlug = (slug) => {
-    // This should match your blog ID extraction logic
-    // You might need to adjust this based on your data structure
-    return slug;
-  };
-
-  const blogId = getBlogIdFromSlug(id);
+  // Ensure ID is a string and valid
+  const blogId = String(id);
   
   const { data, error, mutate } = useSWR(
-    blogId ? `/api/likes/${blogId}` : null,
+    blogId && blogId !== 'undefined' ? `/api/likes/${blogId}` : null,
     fetcher,
     {
       refreshInterval: 0,
       revalidateOnFocus: false,
+      onError: (err) => console.error('SWR Error:', err),
+      onSuccess: (data) => console.log('SWR Success:', data)
     }
   );
 
   const handleLike = async () => {
-    if (isLiking) return;
+    if (isLiking || !blogId || blogId === 'undefined') return;
     
     setIsLiking(true);
+    
     try {
       const response = await fetch('/api/like-blog', {
         method: 'POST',
@@ -37,10 +40,13 @@ const LikeBtn = ({ id }) => {
         },
         body: JSON.stringify({ id: blogId }),
       });
-
+      
       if (response.ok) {
-        // Refresh the like data
-        mutate();
+        const result = await response.json();
+        await mutate();
+      } else {
+        const errorData = await response.json();
+        console.error('Like request failed:', response.status, errorData);
       }
     } catch (error) {
       console.error('Error liking post:', error);
@@ -48,20 +54,31 @@ const LikeBtn = ({ id }) => {
     setIsLiking(false);
   };
 
+  // Don't render if no valid ID
+  if (!blogId || blogId === 'undefined') {
+    console.warn('LikeBtn: No valid blog ID provided');
+    return null;
+  }
+
   if (error) {
+    console.error('SWR Error:', error);
     return (
-      <div className="flex items-center space-x-2 text-gray-500">
-        <FiHeart className="w-5 h-5" />
-        <span>Error loading likes</span>
+      <div className="flex items-center justify-center py-6">
+        <div className="flex items-center space-x-2 text-gray-500">
+          <FiHeart className="w-5 h-5" />
+          <span>Error loading likes: {error.message}</span>
+        </div>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="flex items-center space-x-2 text-gray-500">
-        <FiHeart className="w-5 h-5 animate-pulse" />
-        <span>Loading...</span>
+      <div className="flex items-center justify-center py-6">
+        <div className="flex items-center space-x-2 text-gray-500">
+          <FiHeart className="w-5 h-5 animate-pulse" />
+          <span>Loading likes...</span>
+        </div>
       </div>
     );
   }
