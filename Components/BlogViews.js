@@ -5,13 +5,15 @@ const BlogViews = ({ id }) => {
   const [views, setViews] = useState(null);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasIncremented, setHasIncremented] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     
     setIsLoading(true);
-    // Increment view count
-    fetch(`/api/views/${id}`, { method: "POST" })
+    
+    // First, get the current view count
+    fetch(`/api/views/${id}`, { method: "GET" })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();
@@ -27,7 +29,30 @@ const BlogViews = ({ id }) => {
         setViews(0);
         setIsLoading(false);
       });
-  }, [id]);
+
+    // Set up timer to increment view after 5 seconds
+    const timer = setTimeout(() => {
+      if (!hasIncremented) {
+        fetch(`/api/views/${id}`, { method: "POST" })
+          .then((res) => {
+            if (!res.ok) throw new Error('Failed to increment view');
+            return res.json();
+          })
+          .then((data) => {
+            setViews(data.views);
+            setHasIncremented(true);
+          })
+          .catch((err) => {
+            console.error("Error incrementing views:", err);
+          });
+      }
+    }, 5000); // 5 seconds
+
+    // Cleanup timer on unmount
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [id, hasIncremented]);
 
   if (isLoading) {
     return (
