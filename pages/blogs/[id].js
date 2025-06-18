@@ -10,9 +10,11 @@ import { SWRConfig } from "swr";
 import { remarkHeadingId } from "remark-custom-heading-id";
 import { getHeadings } from "../../Lib/GetHeadings";
 import LikeBtn from "../../Components/LikeBtn";
-import BlogViews from "../../Components/BlogViews"; // This will increment after 5 seconds
+import BlogViews from "../../Components/BlogViews";
 import EnhancedComments from "../../Components/EnhancedComments";
 import ReadingTimeProgress from "../../Components/ReadingTimeProgress";
+import BookmarkButton from "../../Components/BookmarkButton";
+import BlogRating from "../../Components/BlogRating";
 
 export const getStaticPaths = () => {
   const allBlogs = getAllBlogPosts();
@@ -69,7 +71,7 @@ export const getStaticProps = async (context) => {
   };
 };
 
-function id({ data, content, id, headings, topics, readingTime }) {
+function BlogPost({ data, content, id, headings, topics, readingTime }) {
   return (
     <>
       <Head>
@@ -105,21 +107,61 @@ function id({ data, content, id, headings, topics, readingTime }) {
         />
         
         <div className="py-24">
-          <div className="flex items-center justify-center mb-2">
-            <h1 className="text-3xl font-bold">{data.Title}</h1>
-            <BlogViews id={data.Id} /> {/* This will increment after 5 seconds */}
+          {/* Blog Header with Bookmark Button */}
+          <div className="max-w-4xl mx-auto px-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                  {data.Title}
+                </h1>
+                <div className="flex items-center space-x-4">
+                  <BlogViews id={data.Id} />
+                  <span className="text-gray-500 dark:text-gray-400">
+                    By {data.Author}
+                  </span>
+                  {data.Tags && (
+                    <div className="flex flex-wrap gap-2">
+                      {data.Tags.split(' ').map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-full"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <BookmarkButton blogId={data.Id} blogTitle={data.Title} />
+            </div>
           </div>
+
           <BlogInner data={data} content={content} headings={headings} />
-          <LikeBtn id={data.Id} /> {/* Pass the actual blog ID, not the slug */}
-          <BlogShare data={data} />
+          
+          {/* Action Buttons */}
+          <div className="max-w-4xl mx-auto px-6 mt-8 mb-8">
+            <div className="flex flex-wrap gap-4 justify-center">
+              <LikeBtn id={data.Id} />
+              <BlogShare data={data} />
+            </div>
+          </div>
 
-          <EnhancedComments blogId={data.Id} />
+          {/* Rating Section */}
+          <div className="max-w-4xl mx-auto px-6 mb-8">
+            <BlogRating blogId={data.Id} />
+          </div>
 
-          <Footer />
+          {/* Comments Section */}
+          <div className="max-w-4xl mx-auto px-6">
+            <EnhancedComments blogId={data.Id} />
+          </div>
         </div>
+        
+        <Footer />
       </div>
     </>
   );
 }
 
-export default id;
+export default BlogPost;
