@@ -182,4 +182,3 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
 }
 
 export default BlogPost;
-
