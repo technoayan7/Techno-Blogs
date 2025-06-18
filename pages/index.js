@@ -4,6 +4,8 @@ import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 import Header from "../Components/Header";
 import BlogHeader from "../Components/BlogHeader";
+import BookmarkButton from "../Components/BookmarkButton";
+import BlogViewsDisplay from "../Components/BlogViewsDisplay";
 import { getAllBlogPosts, getAllTopics } from "../Lib/Data";
 
 export const getStaticProps = () => {
@@ -175,11 +177,10 @@ export default function Home({ blogs, topics }) {
                       <button
                         key={page}
                         onClick={() => goToPage(page)}
-                        className={`px-3 py-2 border rounded transition-colors ${
-                          page === currentPage
+                        className={`px-3 py-2 border rounded transition-colors ${page === currentPage
                             ? "bg-indigo-600 text-white border-indigo-600"
                             : "border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-                        }`}
+                          }`}
                       >
                         {page}
                       </button>
