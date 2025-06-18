@@ -74,24 +74,20 @@ const BookmarkButton = ({ blogId, blogTitle }) => {
     }
   };
 
-  // Don't render if no user
-  if (!user) {
-    return null;
-  }
-
   return (
     <button
       onClick={toggleBookmark}
       disabled={isLoading}
       className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-        isBookmarked
+        isBookmarked && user
           ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
           : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
       } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      title={!user ? "Sign in to bookmark" : isBookmarked ? "Remove bookmark" : "Add bookmark"}
     >
-      {isBookmarked ? <FaBookmark /> : <FaRegBookmark />}
+      {isBookmarked && user ? <FaBookmark /> : <FaRegBookmark />}
       <span className="text-sm font-medium">
-        {isLoading ? "..." : isBookmarked ? "Bookmarked" : "Bookmark"}
+        {isLoading ? "..." : (isBookmarked && user) ? "Bookmarked" : "Bookmark"}
       </span>
     </button>
   );
