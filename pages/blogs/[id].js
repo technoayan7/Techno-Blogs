@@ -4,17 +4,14 @@ import Navbar from "../../Components/Navbar";
 import Footer from "../../Components/Footer";
 import Head from "next/head";
 import BlogInner from "../../Components/BlogInner";
-import BlogShare from "../../Components/BlogShare";
-import Comments from "../../Components/Comments";
-import { SWRConfig } from "swr";
-import { remarkHeadingId } from "remark-custom-heading-id";
-import { getHeadings } from "../../Lib/GetHeadings";
-import LikeBtn from "../../Components/LikeBtn";
 import BlogViews from "../../Components/BlogViews";
 import EnhancedComments from "../../Components/EnhancedComments";
 import ReadingTimeProgress from "../../Components/ReadingTimeProgress";
 import BookmarkButton from "../../Components/BookmarkButton";
 import BlogRating from "../../Components/BlogRating";
+import SimpleLikeBtn from "../../Components/SimpleLikeBtn";
+import { remarkHeadingId } from "remark-custom-heading-id";
+import { getHeadings } from "../../Lib/GetHeadings";
 
 export const getStaticPaths = () => {
   const allBlogs = getAllBlogPosts();
@@ -139,11 +136,31 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
 
           <BlogInner data={data} content={content} headings={headings} />
           
-          {/* Action Buttons */}
+          {/* Action Buttons - Using simple version temporarily */}
           <div className="max-w-4xl mx-auto px-6 mt-8 mb-8">
-            <div className="flex flex-wrap gap-4 justify-center">
-              <LikeBtn id={data.Id} />
-              <BlogShare data={data} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SimpleLikeBtn blogId={data.Id} />
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg">
+                <div className="text-center">
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: data.Title,
+                          text: data.Abstract,
+                          url: window.location.href,
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('Link copied to clipboard!');
+                      }
+                    }}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Share This Post
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -165,3 +182,4 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
 }
 
 export default BlogPost;
+
