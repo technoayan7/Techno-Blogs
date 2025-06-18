@@ -13,6 +13,7 @@ import { IoLogOutOutline } from "react-icons/io5";
 import { SiCodefactor } from "react-icons/si";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useDispatch } from "react-redux";
+import { FaBookmark } from "react-icons/fa";
 
 // Lazy load Alert component
 const Alert = dynamic(() => import("./Alert"), { ssr: false });
@@ -226,6 +227,16 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                   </span>
                 </a>
               </Link>
+
+              {isLogin && (
+                <Link href="/bookmarks">
+                  <a className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50 transition-colors">
+                    <span className="text-xl">
+                      <FaBookmark className="text-xl" />
+                    </span>
+                  </a>
+                </Link>
+              )}
 
               <button className="flex items-center mx-3 lg:mx-4 text-base text-gray-800 hover:text-indigo-600 dark:text-gray-50 transition-colors">
                 {isLogin ? (
