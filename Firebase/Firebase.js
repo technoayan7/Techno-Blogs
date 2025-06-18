@@ -12,12 +12,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
-const app = initializeApp(firebaseConfig);
-
-const provider = new GoogleAuthProvider();
-const auth = getAuth(app);
 
 // Initialize Firebase
-const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
 
-export { auth, provider, db };
+// Initialize Firebase Authentication and get a reference to the service
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
+
+// Initialize Cloud Firestore and get a reference to the service
+export const db = getFirestore(app);
