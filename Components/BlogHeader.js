@@ -1,6 +1,7 @@
 import { AiOutlineArrowRight } from "react-icons/ai";
 import Link from "next/link";
-import BlogViewsDisplay from "./BlogViewsDisplay"; // Use display-only component
+import BlogViewsDisplay from "./BlogViewsDisplay";
+import BookmarkButton from "./BookmarkButton";
 
 function BlogHeader({ data, content, readTime }) {
   return (
@@ -51,14 +52,17 @@ function BlogHeader({ data, content, readTime }) {
               )}
             </div>
             
-            <Link href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}>
-              <a className="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
-                Read more
-                <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </a>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <BookmarkButton blogId={data.Id} blogTitle={data.Title} />
+              <Link href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}>
+                <a className="inline-flex items-center px-3 py-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors">
+                  Read more
+                  <svg className="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </a>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
