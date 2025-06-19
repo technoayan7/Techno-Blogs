@@ -14,6 +14,11 @@
 /* globals.css or main CSS file */
 @import 'prismjs/themes/prism-tomorrow.css';
 /* You can change the theme if needed */
+@import 'highlight.js/styles/github-dark.css';
+
+/* React Resizable Styles */
+@import '~react-resizable/css/styles.css';
+
 html {
   scroll-behavior: smooth;
 }
@@ -88,8 +93,19 @@ button:focus {
   }
 }
 
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: fade-in-scale 0.3s ease-out;
 }
 
 .animate-slide-down {
@@ -105,10 +121,351 @@ button:focus {
   animation: bounce 0.6s ease-in-out;
 }
 
+/* Smooth scrollbar for chat messages */
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+  scroll-behavior: smooth;
+}
+
+.chat-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #d1d5db, #9ca3af);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #9ca3af, #6b7280);
+}
+
+.dark .chat-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #4b5563, #374151);
+}
+
+.dark .chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #6b7280, #4b5563);
+}
+
+/* Typing indicator animation */
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-10px);
+  }
+}
+
+.typing-dot {
+  animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Typing animation for loading dots */
+@keyframes typing-dots {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
 /* Custom utilities */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Syntax highlighting for code blocks */
+.markdown-content {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.markdown-content p {
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.25rem;
+}
+
+.markdown-content pre {
+  background: #1a1b26 !important;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+  font-size: 13px;
+  border: 1px solid #2a2b3a;
+}
+
+.markdown-content code {
+  font-family: 'Fira Code', 'Monaco', 'Consolas', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+}
+
+.markdown-content pre code {
+  background: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  color: #c9d1d9 !important;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid #6366f1;
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.dark .markdown-content blockquote {
+  color: #9ca3af;
+}
+
+.markdown-content table {
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 13px;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.dark .markdown-content th,
+.dark .markdown-content td {
+  border-color: #374151;
+}
+
+.markdown-content th {
+  background-color: #f9fafb;
+  font-weight: 600;
+}
+
+.dark .markdown-content th {
+  background-color: #1f2937;
+}
+
+/* Code block copy button styling */
+.markdown-content .relative:hover .absolute {
+  opacity: 1;
+}
+
+/* Custom syntax highlighting theme adjustments */
+.hljs {
+  background: #1a1b26 !important;
+  color: #c9d1d9 !important;
+}
+
+.hljs-keyword {
+  color: #ff7edb !important;
+}
+
+.hljs-string {
+  color: #9ece6a !important;
+}
+
+.hljs-number {
+  color: #ff9e64 !important;
+}
+
+.hljs-comment {
+  color: #565f89 !important;
+  font-style: italic;
+}
+
+.hljs-function {
+  color: #7aa2f7 !important;
+}
+
+.hljs-variable {
+  color: #f7768e !important;
+}
+
+.hljs-class {
+  color: #e0af68 !important;
+}
+
+/* Custom resize handle styling */
+.react-resizable-handle {
+  position: absolute;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.react-resizable-handle-se {
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 0 0 12px 0;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.react-resizable-handle-se:hover {
+  opacity: 1;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.react-resizable-handle-e {
+  right: 0;
+  top: 20px;
+  bottom: 20px;
+  width: 8px;
+  cursor: e-resize;
+  background: #6366f1;
+  border-radius: 0 4px 4px 0;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.react-resizable-handle-e:hover {
+  opacity: 0.8;
+}
+
+.react-resizable-handle-s {
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  height: 8px;
+  cursor: s-resize;
+  background: #6366f1;
+  border-radius: 0 0 4px 4px;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.react-resizable-handle-s:hover {
+  opacity: 0.8;
+}
+
+/* Draggable enhancements */
+.drag-handle {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.drag-handle:active {
+  cursor: grabbing !important;
+}
+
+/* Chat window animations */
+.chat-window-enter {
+  opacity: 0;
+  transform: scale(0.95) translateY(20px);
+}
+
+.chat-window-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: all 300ms ease-out;
+}
+
+.chat-window-exit {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.chat-window-exit-active {
+  opacity: 0;
+  transform: scale(0.95) translateY(20px);
+  transition: all 200ms ease-in;
+}
+
+/* Minimize animation */
+.minimize-transition {
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced shadow for dragged window */
+.chat-window-dragging {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+}
+
+/* Window control buttons */
+.window-control:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .react-resizable-handle-se {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .react-resizable-handle-e,
+  .react-resizable-handle-s {
+    display: none;
+  }
+}
+
+/* Accessibility improvements */
+.drag-handle:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}
+
+.window-control:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 1px;
+}
+
+/* Performance optimizations */
+.chat-window {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
