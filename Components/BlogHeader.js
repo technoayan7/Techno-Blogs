@@ -39,9 +39,6 @@ function BlogHeader({ data, content, readTime }) {
           
           <div className="flex items-center justify-between mt-4">
             <div className="flex items-center">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {data.Author}
-              </p>
               {readTime && (
                 <span className="mx-2 text-gray-500">•</span>
               )}
