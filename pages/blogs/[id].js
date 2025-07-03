@@ -45,7 +45,7 @@ export const getStaticProps = async (context) => {
   const { data, content } = page;
 
   // Use the same reading time that's already calculated in getAllBlogPosts
-  const readingTimeMinutes = page.readTime ? 
+  const readingTimeMinutes = page.readTime ?
     parseInt(page.readTime.text.split(' ')[0]) : // Extract number from "5 min read"
     Math.max(2, Math.ceil(content.length / 1000)); // Fallback calculation
 
@@ -82,7 +82,7 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
         <meta property="og:description" content={data.Abstract} />
         <meta
           property="og:image"
-          content={`https://raw.githubusercontent.com/soumyajit4419/Bits-0f-C0de/main/public${data.HeaderImage}`}
+          content={data.HeaderImage}
         />
 
         <meta property="twitter:card" content="summary_large_image" />
@@ -91,18 +91,21 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
         <meta property="twitter:description" content={data.Abstract} />
         <meta
           property="twitter:image"
-          content={`https://raw.githubusercontent.com/soumyajit4419/Bits-0f-C0de/main/public${data.HeaderImage}`}
+          content={data.HeaderImage}
         />
+
+        {/* Preload the header image for faster loading */}
+        <link rel="preload" as="image" href={data.HeaderImage} />
       </Head>
 
       <div className="min-h-screen relative bg-white dark:bg-gray-900">
         <Navbar topics={topics} />
-        
-        <ReadingTimeProgress 
-          content={content} 
-          estimatedTime={readingTime} 
+
+        <ReadingTimeProgress
+          content={content}
+          estimatedTime={readingTime}
         />
-        
+
         <div className="py-24">
           {/* Blog Header with Bookmark Button */}
           <div className="max-w-4xl mx-auto px-6 mb-8">
@@ -135,7 +138,7 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
           </div>
 
           <BlogInner data={data} content={content} headings={headings} />
-          
+
           {/* Action Buttons - Using simple version temporarily */}
           <div className="max-w-4xl mx-auto px-6 mt-8 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,7 +177,7 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
             <EnhancedComments blogId={data.Id} />
           </div>
         </div>
-        
+
         <Footer />
       </div>
     </>
