@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Head from "next/head";
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
@@ -35,6 +35,24 @@ export default function Home({ blogs, topics }) {
   const [filteredBlogs, setFilteredBlogs] = useState(blogs);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Preload critical images on component mount
+  useEffect(() => {
+    const preloadImages = () => {
+      // Preload first 6 images immediately
+      blogs.slice(0, 6).forEach((blog, index) => {
+        if (blog.data.HeaderImage) {
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = blog.data.HeaderImage;
+          document.head.appendChild(link);
+        }
+      });
+    };
+
+    preloadImages();
+  }, [blogs]);
 
   // Memoize pagination calculations
   const paginationData = useMemo(() => {
@@ -113,13 +131,14 @@ export default function Home({ blogs, topics }) {
           <div className="flex flex-wrap">
             {paginationData.displayedBlogs.length > 0 ? (
               paginationData.displayedBlogs.map(
-                (blog) =>
+                (blog, index) =>
                   blog.data.isPublished && (
                     <BlogHeader
                       key={blog.data.Id}
                       data={blog.data}
                       content={blog.content}
                       readTime={blog.readTime?.text}
+                      index={(currentPage - 1) * itemsPerPage + index}
                     />
                   )
               )
