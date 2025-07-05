@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "critters": "^0.0.23",
     "dotenv": "^16.4.5",
     "firebase": "^9.6.8",
     "firebase-admin": "^10.0.2",
