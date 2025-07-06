@@ -2,26 +2,40 @@ import { VscInfo } from "react-icons/vsc";
 import { HiOutlineEmojiHappy } from "react-icons/hi";
 
 function Alert({ show, type, message }) {
-  return show ? (
+  // Check if it's an admin message
+  const isAdminMessage = message.includes("Admin") || message.includes("👑");
+
+  return (
     <div
-      className={
-        type === "success"
-          ? "fixed bottom-10 z-50 rounded-lg max-w-sm text-white bg-purple-500 dark:bg-purple-600 font-medium inset-x-0 mx-auto"
-          : "fixed bottom-10 z-50 rounded-lg max-w-sm text-white bg-red-500 font-medium inset-x-0 mx-auto"
-      }
+      className={`fixed top-20 right-4 z-50 transition-all duration-300 ${
+        show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+      }`}
     >
-      <div className="px-4 py-3 leading-normal flex items-center justify-center">
-        <div className="flex justify-center">
-          {type && type == "error" && <VscInfo className="text-xl" />}
-          {type && type == "success" && (
-            <HiOutlineEmojiHappy className="text-xl" />
-          )}
+      <div
+        className={`${
+          type === "success"
+            ? "bg-purple-500 dark:bg-purple-600 text-white border-purple-700"
+            : type === "error"
+            ? "bg-red-500 text-white border-red-700"
+            : "bg-gray-500 text-white border-gray-700"
+        } px-6 py-4 rounded-lg shadow-lg border-l-4 max-w-sm`}
+      >
+        <div className="flex items-center">
+          <span className="text-2xl mr-3">
+            {isAdminMessage
+              ? "👑"
+              : type === "success"
+              ? "✅"
+              : type === "error"
+              ? "❌"
+              : "ℹ️"}
+          </span>
+          <div>
+            <p className="font-semibold text-sm">{message}</p>
+          </div>
         </div>
-        <p className="ml-6 text-center">{message}</p>
       </div>
     </div>
-  ) : (
-    <></>
   );
 }
 
