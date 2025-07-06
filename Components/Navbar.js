@@ -13,7 +13,7 @@ import { IoLogOutOutline } from "react-icons/io5";
 import { SiCodefactor } from "react-icons/si";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useDispatch } from "react-redux";
-import { FaBookmark } from "react-icons/fa";
+import { FaBookmark, FaCrown } from "react-icons/fa";
 
 // Lazy load Alert component
 const Alert = dynamic(() => import("./Alert"), { ssr: false });
@@ -38,6 +38,8 @@ const useDebounce = (value, delay) => {
 function Navbar({ topics, blogs = [], onSearch = () => {} }) {
   const [isMounted, setIsMounted] = useState(false);
   const [isLogin, setLogin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [userName, setUserName] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { theme, setTheme } = useTheme();
@@ -51,7 +53,7 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
   // Memoize filtered results
   const filteredResults = useMemo(() => {
     if (!debouncedSearchQuery.trim()) return blogs;
-    
+
     return blogs.filter((blog) =>
       blog.data.Title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
       blog.data.Abstract?.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
@@ -65,6 +67,9 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
     if (user) {
       dispatch({ type: "STORE_USER", payload: user });
       setLogin(true);
+      setUserName(user.name);
+      // Check if user is admin
+      setIsAdmin(user.email === "ayanahmad7052@gmail.com");
     }
   }, [dispatch]);
 
@@ -83,6 +88,8 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
     signOut(auth)
       .then(() => {
         setLogin(false);
+        setIsAdmin(false);
+        setUserName("");
         localStorage.removeItem("user");
         dispatch({ type: "REMOVE_USER" });
         setViewAlert(true);
@@ -104,13 +111,22 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
           photo: res.user.photoURL,
           token: res.user.accessToken,
           uid: res.user.uid,
+          email: res.user.email,
         };
         localStorage.setItem("user", JSON.stringify(userObj));
         dispatch({ type: "STORE_USER", payload: userObj });
 
         setLogin(true);
+        setUserName(res.user.displayName);
+        const isUserAdmin = res.user.email === "ayanahmad7052@gmail.com";
+        setIsAdmin(isUserAdmin);
+
         setViewAlert(true);
-        setAlertMessage(`Hello ${res.user.displayName}`);
+        setAlertMessage(
+          isUserAdmin
+            ? `Welcome back, Admin ${res.user.displayName}! 👑`
+            : `Hello ${res.user.displayName}!`
+        );
         setTimeout(() => {
           setViewAlert(false);
         }, 2000);
@@ -143,6 +159,16 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                 </a>
               </Link>
 
+              {/* Admin Badge */}
+              {isAdmin && (
+                <div className="flex items-center ml-4">
+                  <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-lg">
+                    <FaCrown className="text-sm mr-1" />
+                    <span>Admin</span>
+                  </div>
+                </div>
+              )}
+
               {/* Dropdown for Topics */}
               <div className="dropdown inline-block relative mx-2">
                 <a className="flex items-center hover:text-indigo-600 text-gray-800 dark:text-gray-50 mx-6 cursor-pointer transition-colors">
@@ -172,6 +198,17 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
 
             {/* Right Section */}
             <div className="flex items-center space-x-4">
+              {/* User Name Display */}
+              {isLogin && (
+                <div className="hidden md:flex items-center text-sm text-gray-600 dark:text-gray-400">
+                  <span>Welcome, </span>
+                  <span className="font-semibold text-gray-800 dark:text-gray-50 ml-1">
+                    {isAdmin ? `Admin ${userName}` : userName}
+                  </span>
+                  {isAdmin && <FaCrown className="text-yellow-500 ml-1 text-xs" />}
+                </div>
+              )}
+
               <div className="flex items-center relative">
                 {isSearchOpen ? (
                   <div className="relative w-32 md:w-40">
