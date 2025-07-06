@@ -19,12 +19,24 @@ export const getStaticPaths = () => {
   // Sort blogs by ID in descending order
   const sortedBlogs = allBlogs.sort((a, b) => b.data.Id - a.data.Id);
 
-  return {
-    paths: sortedBlogs.map((blog) => ({
+  const paths = [];
+
+  sortedBlogs.forEach((blog) => {
+    // Add both slug-based and ID-based paths
+    paths.push({
       params: {
         id: String(blog.data.Title.split(" ").join("-").toLowerCase()),
       },
-    })),
+    });
+    paths.push({
+      params: {
+        id: String(blog.data.Id),
+      },
+    });
+  });
+
+  return {
+    paths: paths,
     fallback: false,
   };
 };
@@ -37,10 +49,24 @@ export const getStaticProps = async (context) => {
   // Sort blogs by ID in descending order
   const sortedBlogs = allBlogs.sort((a, b) => b.data.Id - a.data.Id);
 
-  const page = sortedBlogs.find(
+  // Try to find blog by slug first, then by ID
+  let page = sortedBlogs.find(
     (blog) =>
       String(blog.data.Title.split(" ").join("-").toLowerCase()) === params.id
   );
+
+  // If not found by slug, try to find by ID
+  if (!page) {
+    page = sortedBlogs.find(
+      (blog) => String(blog.data.Id) === params.id
+    );
+  }
+
+  if (!page) {
+    return {
+      notFound: true,
+    };
+  }
 
   const { data, content } = page;
 
