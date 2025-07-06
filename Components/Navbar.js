@@ -17,6 +17,7 @@ import {
   FaBookmark,
   FaCrown,
   FaChevronDown,
+  FaChevronRight,
   FaUser,
   FaBell,
 } from "react-icons/fa";
@@ -52,6 +53,8 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTopicsDropdownOpen, setIsTopicsDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  // NEW: Mobile topics collapse state
+  const [isMobileTopicsOpen, setIsMobileTopicsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, setTheme } = useTheme();
   const [viewAlert, setViewAlert] = useState(false);
@@ -186,7 +189,13 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+    // Reset mobile topics state when closing menu
+    setIsMobileTopicsOpen(false);
   };
+
+  // Limit topics shown initially on mobile
+  const displayedTopics = isMobileTopicsOpen ? topics : topics.slice(0, 3);
+  const hasMoreTopics = topics.length > 3;
 
   return (
     <>
@@ -460,7 +469,7 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 animate-slideDown">
+          <div className="lg:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 animate-slideDown max-h-[calc(100vh-4rem)] overflow-y-auto">
             <div className="px-4 py-6 space-y-4">
               {/* User Info Mobile */}
               {isLogin && (
@@ -501,21 +510,50 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                   </a>
                 </Link>
 
-                {/* Topics in Mobile */}
+                {/* Topics in Mobile - NOW COLLAPSIBLE */}
                 <div className="space-y-1">
-                  <div className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Topics
-                  </div>
-                  {topics.map((topic) => (
-                    <Link href={`/topic/${topic}`} key={topic}>
-                      <a
-                        onClick={closeMobileMenu}
-                        className="block px-6 py-2 text-base text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  <button
+                    onClick={() => setIsMobileTopicsOpen(!isMobileTopicsOpen)}
+                    className="flex items-center justify-between w-full px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                  >
+                    <span>Topics ({topics.length})</span>
+                    {isMobileTopicsOpen ? (
+                      <FaChevronDown className="text-xs transition-transform duration-200" />
+                    ) : (
+                      <FaChevronRight className="text-xs transition-transform duration-200" />
+                    )}
+                  </button>
+
+                  {/* Topics List */}
+                  <div
+                    className={`space-y-1 transition-all duration-300 ${
+                      isMobileTopicsOpen ? "max-h-96" : "max-h-20"
+                    } overflow-hidden`}
+                  >
+                    {displayedTopics.map((topic, index) => (
+                      <Link href={`/topic/${topic}`} key={topic}>
+                        <a
+                          onClick={closeMobileMenu}
+                          className="block px-6 py-2 text-base text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                            <span>{topic}</span>
+                          </div>
+                        </a>
+                      </Link>
+                    ))}
+
+                    {/* Show More/Less Button */}
+                    {hasMoreTopics && !isMobileTopicsOpen && (
+                      <button
+                        onClick={() => setIsMobileTopicsOpen(true)}
+                        className="w-full px-6 py-2 text-left text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
                       >
-                        {topic}
-                      </a>
-                    </Link>
-                  ))}
+                        + {topics.length - 3} more topics
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <Link href="/about">
@@ -657,7 +695,7 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
           display: block;
         }
 
-        /* Custom scrollbar for search results */
+        /* Custom scrollbar for search results and mobile menu */
         .overflow-y-auto::-webkit-scrollbar {
           width: 6px;
         }
@@ -673,6 +711,197 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
 
         .dark .overflow-y-auto::-webkit-scrollbar-thumb {
           background: #4b5563;
+        }
+
+        /* Enhanced mobile menu styling */
+        @media (max-width: 1024px) {
+          .mobile-menu-container {
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+          }
+
+          /* Smooth transitions for mobile topics collapse */
+          .topics-container {
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .topics-container.collapsed {
+            max-height: 5rem;
+          }
+
+          .topics-container.expanded {
+            max-height: 24rem;
+          }
+        }
+
+        /* Accessibility improvements for mobile */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-slideDown {
+            animation: none;
+          }
+
+          .transition-transform {
+            transition: none;
+          }
+
+          .topics-container {
+            transition: none;
+          }
+        }
+
+        /* Touch target improvements for mobile */
+        @media (max-width: 640px) {
+          button,
+          a {
+            min-height: 44px;
+            min-width: 44px;
+          }
+
+          /* Larger touch targets for topic items */
+          .topic-item {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+          }
+        }
+
+        /* Visual feedback for collapsible sections */
+        .collapsible-header {
+          position: relative;
+        }
+
+        .collapsible-header::after {
+          content: "";
+          position: absolute;
+          bottom: 0;
+          left: 1rem;
+          right: 1rem;
+          height: 1px;
+          background: linear-gradient(
+            to right,
+            transparent,
+            #e5e7eb,
+            transparent
+          );
+        }
+
+        .dark .collapsible-header::after {
+          background: linear-gradient(
+            to right,
+            transparent,
+            #374151,
+            transparent
+          );
+        }
+
+        /* Loading state for topics */
+        .topics-loading {
+          background: linear-gradient(
+            90deg,
+            #f3f4f6 25%,
+            #e5e7eb 50%,
+            #f3f4f6 75%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
+
+        .dark .topics-loading {
+          background: linear-gradient(
+            90deg,
+            #374151 25%,
+            #4b5563 50%,
+            #374151 75%
+          );
+          background-size: 200% 100%;
+        }
+
+        @keyframes shimmer {
+          0% {
+            background-position: 200% 0;
+          }
+          100% {
+            background-position: -200% 0;
+          }
+        }
+
+        /* Enhanced focus states for mobile navigation */
+        .mobile-nav-item:focus {
+          outline: 2px solid #6366f1;
+          outline-offset: 2px;
+          border-radius: 0.5rem;
+        }
+
+        /* Improved visual hierarchy for mobile menu */
+        .mobile-section-divider {
+          height: 1px;
+          background: linear-gradient(
+            to right,
+            transparent,
+            #e5e7eb,
+            transparent
+          );
+          margin: 1rem 0;
+        }
+
+        .dark .mobile-section-divider {
+          background: linear-gradient(
+            to right,
+            transparent,
+            #374151,
+            transparent
+          );
+        }
+
+        /* Animation for show more/less topics */
+        .show-more-btn {
+          position: relative;
+          overflow: hidden;
+        }
+
+        .show-more-btn::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(99, 102, 241, 0.1),
+            transparent
+          );
+          transition: left 0.3s ease;
+        }
+
+        .show-more-btn:hover::before {
+          left: 100%;
+        }
+
+        /* Mobile menu backdrop blur */
+        .mobile-menu-backdrop {
+          backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
+        }
+
+        /* Improved contrast for accessibility */
+        @media (prefers-contrast: high) {
+          .border-gray-200 {
+            border-color: #000000 !important;
+          }
+
+          .dark .border-gray-700 {
+            border-color: #ffffff !important;
+          }
+
+          .text-gray-600 {
+            color: #000000 !important;
+          }
+
+          .dark .text-gray-400 {
+            color: #ffffff !important;
+          }
         }
       `}</style>
     </>
