@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
-import { FiMessageCircle, FiSend, FiUser } from 'react-icons/fi';
+import { useSelector } from 'react-redux';
+import { FiMessageCircle, FiSend, FiUser, FiTrash2 } from 'react-icons/fi';
+import { FaCrown } from 'react-icons/fa';
 
 const EnhancedComments = ({ blogId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({ name: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  const user = useSelector((state) => state.user);
+  const isAdmin = user?.email === "ayanahmad7052@gmail.com";
 
   useEffect(() => {
     fetchComments();
@@ -66,6 +73,40 @@ const EnhancedComments = ({ blogId }) => {
     }
   };
 
+  const deleteComment = async (commentId) => {
+    setDeleteLoading(commentId);
+    try {
+      console.log(`Deleting comment ${commentId} for blog ${blogId}`);
+
+      const response = await fetch(`/api/comments/${blogId}/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAdmin: true, adminEmail: user.email })
+      });
+
+      const result = await response.json();
+      console.log('Delete response:', result);
+
+      if (response.ok) {
+        // Remove the comment and its replies from local state
+        setComments(prevComments =>
+          prevComments.filter(comment =>
+            comment.id !== commentId && comment.parentId !== commentId
+          )
+        );
+        setShowDeleteConfirm(null);
+        console.log(`Successfully deleted comment ${commentId}`);
+      } else {
+        console.error('Delete failed:', result);
+        alert(`Failed to delete comment: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('An error occurred while deleting the comment. Please try again.');
+    }
+    setDeleteLoading(null);
+  };
+
   const ReactionButton = ({ comment, reaction, emoji }) => {
     const userId = localStorage.getItem('userId') || '';
     const isActive = comment.userReactions?.[userId] === reaction;
@@ -75,8 +116,8 @@ const EnhancedComments = ({ blogId }) => {
       <button
         onClick={() => handleReaction(comment.id, reaction)}
         className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs transition-all duration-200 ${
-          isActive 
-            ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700' 
+          isActive
+            ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700'
             : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
         }`}
       >
@@ -86,19 +127,79 @@ const EnhancedComments = ({ blogId }) => {
     );
   };
 
+  const DeleteButton = ({ commentId }) => {
+    if (!isAdmin) return null;
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowDeleteConfirm(showDeleteConfirm === commentId ? null : commentId)}
+          className="flex items-center space-x-1 px-2 py-1 text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all duration-200"
+          title="Delete comment (Admin only)"
+        >
+          <FaCrown className="w-3 h-3" />
+          <FiTrash2 className="w-3 h-3" />
+        </button>
+
+        {showDeleteConfirm === commentId && (
+          <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-64">
+            <div className="flex items-center space-x-2 mb-3">
+              <FiTrash2 className="w-4 h-4 text-red-500" />
+              <h4 className="font-semibold text-gray-800 dark:text-gray-200">Delete Comment</h4>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </p>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => deleteComment(commentId)}
+                disabled={deleteLoading === commentId}
+                className="flex items-center space-x-1 px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 text-sm transition-colors"
+              >
+                {deleteLoading === commentId ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiTrash2 className="w-3 h-3" />
+                    <span>Delete</span>
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const CommentItem = ({ comment, depth = 0 }) => {
     const replies = comments.filter(c => c.parentId === comment.id);
-    
+
     return (
       <div className={`${depth > 0 ? 'ml-8 mt-4' : 'mt-6'}`}>
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 relative">
+          {isAdmin && (
+            <div className="absolute top-2 right-2">
+              <DeleteButton commentId={comment.id} />
+            </div>
+          )}
+
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center">
                 <FiUser className="w-4 h-4 text-white" />
               </div>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 pr-8">
               <div className="flex items-center space-x-2 mb-2">
                 <h4 className="font-medium text-gray-800 dark:text-gray-200">
                   {comment.name}
@@ -110,13 +211,12 @@ const EnhancedComments = ({ blogId }) => {
               <p className="text-gray-700 dark:text-gray-300 mb-3">
                 {comment.message}
               </p>
-              
-              {/* Reactions */}
+
               <div className="flex items-center space-x-2 mb-2">
                 <ReactionButton comment={comment} reaction="like" emoji="👍" />
                 <ReactionButton comment={comment} reaction="love" emoji="❤️" />
                 <ReactionButton comment={comment} reaction="celebrate" emoji="🎉" />
-                
+
                 <button
                   onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
                   className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 ml-4"
@@ -125,7 +225,6 @@ const EnhancedComments = ({ blogId }) => {
                 </button>
               </div>
 
-              {/* Reply Form */}
               {replyTo === comment.id && (
                 <div className="mt-4 p-4 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                   <form onSubmit={submitComment} className="space-y-3">
@@ -169,7 +268,6 @@ const EnhancedComments = ({ blogId }) => {
           </div>
         </div>
 
-        {/* Replies */}
         {replies.map(reply => (
           <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
         ))}
@@ -186,9 +284,14 @@ const EnhancedComments = ({ blogId }) => {
         <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
           Comments ({comments.length})
         </h3>
+        {isAdmin && (
+          <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+            <FaCrown className="w-3 h-3" />
+            <span>Admin Mode</span>
+          </div>
+        )}
       </div>
 
-      {/* Comment Form */}
       {!replyTo && (
         <form onSubmit={submitComment} className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
@@ -230,7 +333,6 @@ const EnhancedComments = ({ blogId }) => {
         </form>
       )}
 
-      {/* Comments List */}
       <div className="space-y-6">
         {topLevelComments.length > 0 ? (
           topLevelComments.map(comment => (
