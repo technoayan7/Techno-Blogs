@@ -51,8 +51,12 @@ function Profile({ topics }) {
     bookmarks: 0,
     totalViews: 0,
     joinDate: null,
+    likes: 0,
+    comments: 0,
   });
   const [recentBookmarks, setRecentBookmarks] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [userComments, setUserComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -97,7 +101,7 @@ function Profile({ topics }) {
     try {
       setIsLoading(true);
 
-      // Fetch bookmarks
+      // Fetch bookmarks - using the correct structure from your existing bookmarks page
       const bookmarksQuery = query(
         collection(db, "bookmarks", user.uid, "posts"),
         orderBy("bookmarkedAt", "desc")
@@ -108,13 +112,113 @@ function Profile({ topics }) {
         ...doc.data(),
       }));
 
+      // Fetch liked posts - using the posts collection with likes subcollection
+      let likesData = [];
+      try {
+        // Get all posts and check which ones this user has liked
+        const postsRef = collection(db, "posts");
+        const postsSnap = await getDocs(postsRef);
+
+        for (const postDoc of postsSnap.docs) {
+          const likesRef = collection(db, "posts", postDoc.id, "likes");
+          const userLikeQuery = query(likesRef, where("userId", "==", user.uid));
+          const userLikeSnap = await getDocs(userLikeQuery);
+
+          if (!userLikeSnap.empty) {
+            userLikeSnap.forEach((likeDoc) => {
+              likesData.push({
+                id: likeDoc.id,
+                blogId: postDoc.id,
+                title: postDoc.data().Title || "Unknown Post",
+                likedAt: likeDoc.data().likedAt || likeDoc.data().timestamp,
+                ...likeDoc.data(),
+              });
+            });
+          }
+        }
+      } catch (error) {
+        console.log("Error fetching likes:", error);
+        // Try alternative structure if the above fails
+        try {
+          const userLikesQuery = query(
+            collection(db, "userLikes", user.uid, "posts"),
+            orderBy("likedAt", "desc")
+          );
+          const userLikesSnap = await getDocs(userLikesQuery);
+          likesData = userLikesSnap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+        } catch (altError) {
+          console.log("Alternative likes structure also failed:", altError);
+        }
+      }
+
+      // Fetch user comments - using the blogComments structure from your API
+      let commentsData = [];
+      try {
+        // Get comments from blogComments collection where user.name matches
+        const blogCommentsRef = collection(db, "blogComments");
+        const blogCommentsSnap = await getDocs(blogCommentsRef);
+
+        for (const blogDoc of blogCommentsSnap.docs) {
+          const commentsRef = collection(db, "blogComments", blogDoc.id, "comments");
+          const userCommentsQuery = query(
+            commentsRef,
+            where("name", "==", user.name),
+            orderBy("timestamp", "desc")
+          );
+          const userCommentsSnap = await getDocs(userCommentsQuery);
+
+          userCommentsSnap.forEach((commentDoc) => {
+            commentsData.push({
+              id: commentDoc.id,
+              postId: blogDoc.id,
+              postTitle: `Post ${blogDoc.id}`, // You might want to fetch the actual post title
+              content: commentDoc.data().message,
+              createdAt: commentDoc.data().timestamp,
+              likes: Object.values(commentDoc.data().reactions || {}).reduce((sum, count) => sum + count, 0),
+              ...commentDoc.data(),
+            });
+          });
+        }
+      } catch (error) {
+        console.log("Error fetching comments:", error);
+        // Try alternative structure
+        try {
+          const userCommentsQuery = query(
+            collection(db, "comments"),
+            where("userId", "==", user.uid),
+            orderBy("createdAt", "desc")
+          );
+          const userCommentsSnap = await getDocs(userCommentsQuery);
+          commentsData = userCommentsSnap.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+        } catch (altError) {
+          console.log("Alternative comments structure also failed:", altError);
+        }
+      }
+
       setUserStats({
         bookmarks: bookmarksData.length,
-        totalViews: 0, // You can implement view tracking
+        totalViews: 0, // You can implement view tracking later
         joinDate: user.metadata?.creationTime || new Date(),
+        likes: likesData.length,
+        comments: commentsData.length,
       });
 
       setRecentBookmarks(bookmarksData.slice(0, 5));
+      setLikedPosts(likesData.slice(0, 5));
+      setUserComments(commentsData.slice(0, 5));
+
+      console.log("Fetched data:", {
+        bookmarks: bookmarksData.length,
+        likes: likesData.length,
+        comments: commentsData.length,
+      });
+
     } catch (error) {
       console.error("Error fetching user data:", error);
     } finally {
@@ -157,6 +261,283 @@ function Profile({ topics }) {
       ...prev,
       [field]: value,
     }));
+  };
+
+  const tabs = [
+    { id: "overview", label: "Overview", icon: FaUser },
+    { id: "bookmarks", label: "Bookmarks", icon: FaBookmark },
+    { id: "likes", label: "Liked Posts", icon: FaHeart },
+    { id: "comments", label: "Comments", icon: FaEdit },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "overview":
+        return (
+          <div className="space-y-8">
+            {/* Recent Bookmarks */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Recent Bookmarks
+                </h3>
+                <Link
+                  href="/bookmarks"
+                  className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                >
+                  View All
+                </Link>
+              </div>
+              {renderBookmarksList(recentBookmarks)}
+            </div>
+
+            {/* Recent Likes */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Recently Liked
+                </h3>
+                <button
+                  onClick={() => setActiveTab("likes")}
+                  className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                >
+                  View All
+                </button>
+              </div>
+              {renderLikedPostsList(likedPosts)}
+            </div>
+
+            {/* Recent Comments */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Recent Comments
+                </h3>
+                <button
+                  onClick={() => setActiveTab("comments")}
+                  className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                >
+                  View All
+                </button>
+              </div>
+              {renderCommentsList(userComments)}
+            </div>
+          </div>
+        );
+      case "bookmarks":
+        return (
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              All Bookmarks ({userStats.bookmarks})
+            </h3>
+            {renderBookmarksList(recentBookmarks, true)}
+          </div>
+        );
+      case "likes":
+        return (
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              Liked Posts ({userStats.likes})
+            </h3>
+            {renderLikedPostsList(likedPosts, true)}
+          </div>
+        );
+      case "comments":
+        return (
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+              My Comments ({userStats.comments})
+            </h3>
+            {renderCommentsList(userComments, true)}
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderBookmarksList = (bookmarks, showAll = false) => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (bookmarks.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <FaBookmark className="mx-auto text-6xl text-gray-400 mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
+            No bookmarks yet. Start bookmarking posts you love!
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {bookmarks.map((bookmark) => (
+          <div
+            key={bookmark.id}
+            className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          >
+            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+              <FaBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                {bookmark.title}
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Bookmarked on{" "}
+                {bookmark.bookmarkedAt?.toDate?.()?.toLocaleDateString() ||
+                  "Unknown date"}
+              </p>
+            </div>
+            <Link
+              href={`/blog/${bookmark.blogId}`}
+              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+            >
+              Read
+            </Link>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderLikedPostsList = (likes, showAll = false) => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (likes.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <FaHeart className="mx-auto text-6xl text-gray-400 mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
+            No liked posts yet. Show some love to posts you enjoy!
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {likes.map((like) => (
+          <div
+            key={like.id}
+            className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          >
+            <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+              <FaHeart className="w-5 h-5 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium text-gray-900 dark:text-white">
+                {like.title}
+              </h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Liked on{" "}
+                {like.likedAt?.toDate?.()?.toLocaleDateString() ||
+                  "Unknown date"}
+              </p>
+            </div>
+            <Link
+              href={`/blog/${like.blogId}`}
+              className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+            >
+              Read
+            </Link>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderCommentsList = (comments, showAll = false) => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div
+              key={i}
+              className="h-20 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (comments.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <FaEdit className="mx-auto text-6xl text-gray-400 mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
+            No comments yet. Join the conversation on posts you find interesting!
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {comments.map((comment) => (
+          <div
+            key={comment.id}
+            className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          >
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                <FaEdit className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Comment on "{comment.postTitle || "Unknown Post"}"
+                  </p>
+                  <span className="text-xs text-gray-400">
+                    {comment.createdAt?.toDate?.()?.toLocaleDateString() ||
+                      "Unknown date"}
+                  </span>
+                </div>
+                <p className="text-gray-900 dark:text-white text-sm leading-relaxed">
+                  {comment.content}
+                </p>
+                <div className="mt-2 flex items-center space-x-4">
+                  <Link
+                    href={`/blog/${comment.postId}`}
+                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-sm font-medium"
+                  >
+                    View Post
+                  </Link>
+                  {comment.likes > 0 && (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {comment.likes} likes
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   if (!user) {
@@ -376,7 +757,7 @@ function Profile({ topics }) {
           )}
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg animate-slide-up">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-xl">
@@ -392,14 +773,27 @@ function Profile({ topics }) {
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg animate-slide-up">
               <div className="flex items-center space-x-4">
-                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
-                  <FaEye className="w-6 h-6 text-green-600 dark:text-green-400" />
+                <div className="p-3 bg-red-100 dark:bg-red-900 rounded-xl">
+                  <FaHeart className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {userStats.totalViews}
+                    {userStats.likes}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">Total Views</p>
+                  <p className="text-gray-600 dark:text-gray-400">Likes</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg animate-slide-up">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
+                  <FaEdit className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {userStats.comments}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">Comments</p>
                 </div>
               </div>
             </div>
@@ -420,59 +814,31 @@ function Profile({ topics }) {
             </div>
           </div>
 
-          {/* Recent Bookmarks */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 animate-slide-up">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Recent Bookmarks
-              </h3>
-              <Link
-                href="/bookmarks"
-                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
-              >
-                View All
-              </Link>
-            </div>
-            {isLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-16 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : recentBookmarks.length > 0 ? (
-              <div className="space-y-4">
-                {recentBookmarks.map((bookmark) => (
-                  <div
-                    key={bookmark.id}
-                    className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          {/* Tabs Navigation */}
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl overflow-hidden animate-slide-up">
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <nav className="flex space-x-8 px-8 py-4">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 py-2 px-4 rounded-lg font-medium transition-all duration-200 ${
+                      activeTab === tab.id
+                        ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
                   >
-                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-                      <FaBookmark className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900 dark:text-white">
-                        {bookmark.title}
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Bookmarked on{" "}
-                        {bookmark.bookmarkedAt?.toDate?.()?.toLocaleDateString() ||
-                          "Unknown date"}
-                      </p>
-                    </div>
-                  </div>
+                    <tab.icon className="w-5 h-5" />
+                    <span>{tab.label}</span>
+                  </button>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <FaBookmark className="mx-auto text-6xl text-gray-400 mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">
-                  No bookmarks yet. Start bookmarking posts you love!
-                </p>
-              </div>
-            )}
+              </nav>
+            </div>
+
+            {/* Tab Content */}
+            <div className="p-8">
+              {renderTabContent()}
+            </div>
           </div>
         </div>
 
