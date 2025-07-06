@@ -6,7 +6,6 @@ import Head from "next/head";
 import BlogInner from "../../Components/BlogInner";
 import BlogViews from "../../Components/BlogViews";
 import EnhancedComments from "../../Components/EnhancedComments";
-import ReadingTimeProgress from "../../Components/ReadingTimeProgress";
 import BookmarkButton from "../../Components/BookmarkButton";
 import BlogRating from "../../Components/BlogRating";
 import SimpleLikeBtn from "../../Components/SimpleLikeBtn";
@@ -126,11 +125,6 @@ function BlogPost({ data, content, id, headings, topics, readingTime }) {
 
       <div className="min-h-screen relative bg-white dark:bg-gray-900">
         <Navbar topics={topics} />
-
-        <ReadingTimeProgress
-          content={content}
-          estimatedTime={readingTime}
-        />
 
         <div className="py-24">
           {/* Blog Header with Bookmark Button */}
