@@ -180,11 +180,9 @@ function Bookmarks({ topics }) {
               <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
                 Start bookmarking posts you want to read later!
               </p>
-              <Link href="/">
-                <a className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold hover:scale-105 hover:-translate-y-1">
-                  <FaBook className="mr-2" />
-                  Browse Posts
-                </a>
+              <Link href="/" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold hover:scale-105 hover:-translate-y-1">
+                <FaBook className="mr-2" />
+                Browse Posts
               </Link>
             </div>
           ) : (
@@ -197,12 +195,13 @@ function Bookmarks({ topics }) {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <Link href={`/blog/${bookmark.blogId}`}>
-                        <a className="block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 hover:translate-x-1">
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                            {bookmark.title}
-                          </h3>
-                        </a>
+                      <Link
+                        href={`/blog/${bookmark.blogId}`}
+                        className="block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300 hover:translate-x-1"
+                      >
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+                          {bookmark.title}
+                        </h3>
                       </Link>
                       <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-2">
@@ -277,7 +276,7 @@ function Bookmarks({ topics }) {
         .animate-stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
         .animate-stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
         .animate-stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
-        
+
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
