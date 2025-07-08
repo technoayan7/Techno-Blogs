@@ -4,6 +4,7 @@ import { store } from "../Redux/store";
 import { useEffect } from "react";
 import '../styles/globals.css';
 import ChatBot from "../Components/ChatBot";
+import { Analytics } from "@vercel/analytics/react";
 
 function MyApp({ Component, pageProps }) {
   useEffect(() => {
@@ -25,6 +26,7 @@ function MyApp({ Component, pageProps }) {
       <ThemeProvider attribute="class">
         <Component {...pageProps} />
         <ChatBot />
+        <Analytics />
       </ThemeProvider>
     </Provider>
   );
