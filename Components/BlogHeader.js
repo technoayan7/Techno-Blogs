@@ -115,10 +115,11 @@ function BlogHeader({ data, content, readTime, index = 0 }) {
           </div>
 
           {/* Title */}
-          <Link href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}>
-            <a className="block text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 mb-3 line-clamp-2 hover:translate-x-1">
-              {data.Title}
-            </a>
+          <Link
+            href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}
+            className="block text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 mb-3 line-clamp-2 hover:translate-x-1"
+          >
+            {data.Title}
           </Link>
 
           {/* Abstract */}
@@ -137,13 +138,14 @@ function BlogHeader({ data, content, readTime, index = 0 }) {
             )}
 
             {/* Read More Button */}
-            <Link href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}>
-              <a className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 hover:text-white dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-600 rounded-lg transition-all duration-300 group hover:scale-105">
-                Read more
-                <div className="ml-2 animate-arrow-move">
-                  <FaArrowRight className="w-3 h-3" />
-                </div>
-              </a>
+            <Link
+              href={`/blogs/${data.Title.split(" ").join("-").toLowerCase()}`}
+              className="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 hover:text-white dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-600 rounded-lg transition-all duration-300 group hover:scale-105"
+            >
+              Read more
+              <div className="ml-2 animate-arrow-move">
+                <FaArrowRight className="w-3 h-3" />
+              </div>
             </Link>
           </div>
         </div>
