@@ -200,11 +200,12 @@ function Footer() {
                 <ul className="space-y-3">
                   {quickLinks.map((link) => (
                     <li key={link.name}>
-                      <Link href={link.href}>
-                        <a className="flex items-center space-x-3 text-gray-300 hover:text-white transition-all duration-200 group hover:translate-x-1">
-                          <link.icon className="w-4 h-4 text-indigo-400 group-hover:text-indigo-300" />
-                          <span>{link.name}</span>
-                        </a>
+                      <Link
+                        href={link.href}
+                        className="flex items-center space-x-3 text-gray-300 hover:text-white transition-all duration-200 group hover:translate-x-1"
+                      >
+                        <link.icon className="w-4 h-4 text-indigo-400 group-hover:text-indigo-300" />
+                        <span>{link.name}</span>
                       </Link>
                     </li>
                   ))}
