@@ -215,24 +215,23 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
           <div className="flex items-center justify-between h-16 lg:h-18">
             {/* Logo Section */}
             <div className="flex items-center space-x-4">
-              <Link href="/">
-                <a className="flex items-center space-x-2 group">
-                  <div className="relative">
-                    <BiTerminal className="text-2xl text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors" />
-                    <div className="absolute -inset-1 bg-indigo-600/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-sm"></div>
-                  </div>
-                  <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    TechnoBlogs
-                  </span>
-                </a>
+              <Link href="/" className="flex items-center space-x-2 group">
+                <div className="relative">
+                  <BiTerminal className="text-2xl text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors" />
+                  <div className="absolute -inset-1 bg-indigo-600/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity blur-sm"></div>
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  TechnoBlogs
+                </span>
               </Link>
 
               {/* Desktop Navigation */}
               <nav className="hidden lg:flex items-center space-x-1">
-                <Link href="/">
-                  <a className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
-                    Latest
-                  </a>
+                <Link
+                  href="/"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                >
+                  Latest
                 </Link>
 
                 {/* Topics Dropdown */}
@@ -259,27 +258,28 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                         Browse Topics
                       </div>
                       {topics.map((topic, index) => (
-                        <Link href={`/topic/${topic}`} key={topic}>
-                          <a
-                            onClick={() => setIsTopicsDropdownOpen(false)}
-                            className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
-                              <span>{topic}</span>
-                            </div>
-                          </a>
+                        <Link
+                          href={`/topic/${topic}`}
+                          key={topic}
+                          className="block px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                          onClick={() => setIsTopicsDropdownOpen(false)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                            <span>{topic}</span>
+                          </div>
                         </Link>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <Link href="/about">
-                  <a className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
-                    About
-                  </a>
+                <Link
+                  href="/about"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                >
+                  About
                 </Link>
               </nav>
             </div>
@@ -347,13 +347,12 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
               {isLogin ? (
                 <div className="hidden lg:flex items-center space-x-3">
                   {/* Bookmarks */}
-                  <Link href="/bookmarks">
-                    <a
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
-                      title="Bookmarks"
-                    >
-                      <FaBookmark className="text-lg" />
-                    </a>
+                  <Link
+                    href="/bookmarks"
+                    className="p-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                    title="Bookmarks"
+                  >
+                    <FaBookmark className="text-lg" />
                   </Link>
 
                   {/* User Dropdown */}
@@ -414,18 +413,20 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                           </div>
                         </div>
 
-                        <Link href="/profile">
-                          <a className="flex items-center space-x-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <FaUser className="text-sm" />
-                            <span>Profile</span>
-                          </a>
+                        <Link
+                          href="/profile"
+                          className="flex items-center space-x-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <FaUser className="text-sm" />
+                          <span>Profile</span>
                         </Link>
 
-                        <Link href="/bookmarks">
-                          <a className="flex items-center space-x-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <FaBookmark className="text-sm" />
-                            <span>Bookmarks</span>
-                          </a>
+                        <Link
+                          href="/bookmarks"
+                          className="flex items-center space-x-2 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <FaBookmark className="text-sm" />
+                          <span>Bookmarks</span>
                         </Link>
 
                         <button
@@ -501,13 +502,12 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
 
               {/* Navigation Links */}
               <nav className="space-y-2">
-                <Link href="/">
-                  <a
-                    onClick={closeMobileMenu}
-                    className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    Latest Posts
-                  </a>
+                <Link
+                  href="/"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  Latest Posts
                 </Link>
 
                 {/* Topics in Mobile - NOW COLLAPSIBLE */}
@@ -531,16 +531,16 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                     } overflow-hidden`}
                   >
                     {displayedTopics.map((topic, index) => (
-                      <Link href={`/topic/${topic}`} key={topic}>
-                        <a
-                          onClick={closeMobileMenu}
-                          className="block px-6 py-2 text-base text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
-                            <span>{topic}</span>
-                          </div>
-                        </a>
+                      <Link
+                        href={`/topic/${topic}`}
+                        onClick={closeMobileMenu}
+                        className="block px-6 py-2 text-base text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                        key={topic}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                          <span>{topic}</span>
+                        </div>
                       </Link>
                     ))}
 
@@ -556,24 +556,22 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
                   </div>
                 </div>
 
-                <Link href="/about">
-                  <a
-                    onClick={closeMobileMenu}
-                    className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  >
-                    About
-                  </a>
+                <Link
+                  href="/about"
+                  onClick={closeMobileMenu}
+                  className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  About
                 </Link>
 
                 {isLogin && (
                   <>
-                    <Link href="/bookmarks">
-                      <a
-                        onClick={closeMobileMenu}
-                        className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                      >
-                        Bookmarks
-                      </a>
+                    <Link
+                      href="/bookmarks"
+                      onClick={closeMobileMenu}
+                      className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
+                      Bookmarks
                     </Link>
 
                     <button
@@ -626,18 +624,18 @@ function Navbar({ topics, blogs = [], onSearch = () => {} }) {
               {filteredResults.length > 0 ? (
                 <div className="p-2">
                   {filteredResults.slice(0, 5).map((blog, index) => (
-                    <Link href={`/blog/${blog.slug}`} key={blog.data.Id}>
-                      <a
-                        onClick={() => setIsSearchOpen(false)}
-                        className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                      >
-                        <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                          {blog.data.Title}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {blog.data.Abstract}
-                        </div>
-                      </a>
+                    <Link
+                      href={`/blog/${blog.slug}`}
+                      onClick={() => setIsSearchOpen(false)}
+                      className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      key={blog.data.Id}
+                    >
+                      <div className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                        {blog.data.Title}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {blog.data.Abstract}
+                      </div>
                     </Link>
                   ))}
                 </div>
