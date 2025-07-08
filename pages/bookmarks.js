@@ -127,10 +127,8 @@ function Bookmarks({ topics }) {
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               Start bookmarking posts you want to read later!
             </p>
-            <Link href="/">
-              <a className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                Browse Posts
-              </a>
+            <Link href="/" className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+              Browse Posts
             </Link>
           </div>
         ) : (
@@ -142,12 +140,10 @@ function Bookmarks({ topics }) {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <Link href={`/blogs/${bookmark.blogId}`}>
-                      <a className="block">
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2">
-                          {bookmark.title}
-                        </h3>
-                      </a>
+                    <Link href={`/blogs/${bookmark.blogId}`} className="block">
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-2">
+                        {bookmark.title}
+                      </h3>
                     </Link>
                     {bookmark.abstract && (
                       <p className="text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
