@@ -17,17 +17,15 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     loader: 'default',
     unoptimized: false,
-    // Add image optimization settings
+    // Removed invalid 'quality' option - this is handled automatically
     minimumCacheTTL: 60,
-    quality: 85,
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Enable better image loading
+  // Removed invalid experimental options
   experimental: {
-    optimizeImages: true,
-    optimizeCss: true,
+    // Only include valid experimental options here if needed
   },
   // Add headers for better caching
   async headers() {
