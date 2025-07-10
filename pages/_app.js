@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import '../styles/globals.css';
 import ChatBot from "../Components/ChatBot";
 import { Analytics } from "@vercel/analytics/react";
+import Script from 'next/script';
 
 function MyApp({ Component, pageProps }) {
   useEffect(() => {
@@ -22,13 +23,21 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <Provider store={store}>
-      <ThemeProvider attribute="class">
-        <Component {...pageProps} />
-        <ChatBot />
-        <Analytics />
-      </ThemeProvider>
-    </Provider>
+    <>
+      <Script
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8316794298481387"
+        crossOrigin="anonymous"
+        strategy="afterInteractive"
+      />
+      <Provider store={store}>
+        <ThemeProvider attribute="class">
+          <Component {...pageProps} />
+          <ChatBot />
+          <Analytics />
+        </ThemeProvider>
+      </Provider>
+    </>
   );
 }
 
